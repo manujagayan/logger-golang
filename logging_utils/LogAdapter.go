@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dte/base-template-go/app/config"
-	"github.com/dte/base-template-go/domain/boundary/adapters"
+	"clean-base-template/app/config"
+	"clean-base-template/domain/boundary/adapters"
 )
 
 // LogAdapter is used to provide structured log messages.
