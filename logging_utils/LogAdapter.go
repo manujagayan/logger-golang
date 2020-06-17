@@ -10,27 +10,65 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"clean-base-template/app/config"
-	"clean-base-template/domain/boundary/adapters"
+	"reflect"
 )
 
-// LogAdapter is used to provide structured log messages.
+//LogAdapter is used to provide structured log messages.
 type LogAdapter struct {
-	cfg config.LogConfig
+	cfg LogConfig
 	logger *lumberjack.Logger
 	appName string
 	msName string
 }
+
+type LogConfig struct {
+	Level     string
+	Console   bool
+	File      bool
+	Directory string
+	MaxSize   int
+	MaxBackup int
+	MaxAge    int
+	Compress  bool
+}
+type AppConfig struct {
+	AppName  string
+	MsName   string
+	Mode     string
+	Host     string
+	Port     int
+	Timezone string
+}
 var cr *cron.Cron
 
 // NewLogAdapter creates a new Log adapter instance.
-func NewLogAdapter(cfg config.LogConfig, appCfg config.AppConfig) (adapters.LogAdapterInterface, error) {
+func NewLogAdapter(cfg interface{}, appCfg interface{}) (interface{}, error) {
+	s := reflect.ValueOf(cfg)
+	r := reflect.ValueOf(appCfg)
+	
+	lc := LogConfig{
+		Level:     s.Field(0).Interface().(string),
+		Console:   s.Field(1).Interface().(bool),
+		File:      s.Field(2).Interface().(bool),
+		Directory: s.Field(3).Interface().(string),
+		MaxSize:   s.Field(4).Interface().(int),
+		MaxBackup: s.Field(5).Interface().(int),
+		MaxAge:    s.Field(6).Interface().(int),
+		Compress:  s.Field(7).Interface().(bool),
+	}
+	ac := AppConfig{
+		AppName:  r.Field(0).Interface().(string),
+		MsName:   r.Field(1).Interface().(string),
+		Mode:     r.Field(2).Interface().(string),
+		Host:     r.Field(3).Interface().(string),
+		Port:     r.Field(4).Interface().(int),
+		Timezone: r.Field(5).Interface().(string),
+	}
 
 	a := &LogAdapter{
-		cfg: cfg,
-		appName: appCfg.AppName,
-		msName: appCfg.MsName,
+		cfg: lc,
+		appName: ac.AppName,
+		msName: ac.MsName,
 	}
 
 	err := a.initLogFile()
@@ -90,8 +128,7 @@ func (a *LogAdapter) initLogFile() error {
 
 	ld := a.cfg.Directory
 	a.logger = &lumberjack.Logger{
-		 Filename:   ld + "/go-base-template.log",
-		 LocalTime: true,
+		 Filename:   ld + "/" + a.msName+".log",
 		 MaxSize:    a.cfg.MaxSize, // megabytes
 		 MaxBackups: a.cfg.MaxBackup,
 		 MaxAge:     a.cfg.MaxAge, //days
